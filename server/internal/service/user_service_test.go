@@ -32,11 +32,11 @@ func TestCreateUser(t *testing.T) {
 	s := NewUserService(mockRepo)
 
 	t.Run("Create user", func(t *testing.T) {
-		user := domain.User{ID: 1, Name: "John Doe", Email: "john@example.com"}
+		user := domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"}
 		mockRepo.On("CreateUser", user).Return(nil)
 		err := s.CreateUser(user)
 		assert.NoError(t, err)
-		mockRepo.AssertExpectations(t) // 確保模擬對象的值是否都有被滿足
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("Create user with empty data", func(t *testing.T) {
@@ -54,7 +54,7 @@ func TestGetUserById(t *testing.T) {
 	mockRepo := new(MockUserRepo)
 	s := NewUserService(mockRepo)
 
-	user := domain.User{ID: 1, Name: "John Doe", Email: "john@example.com"}
+	user := domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"}
 
 	t.Run("Get existing user by id", func(t *testing.T) {
 		mockRepo.On("GetUserById", user.ID).Return(&user, nil)
@@ -62,9 +62,9 @@ func TestGetUserById(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, 1, user.ID)
-		assert.Equal(t, "John Doe", user.Name)
-		assert.Equal(t, "john@example.com", user.Email)
-		mockRepo.AssertExpectations(t) // 確保模擬對象的期望調用是否都被滿足
+		assert.Equal(t, "Rita Zeng", user.Name)
+		assert.Equal(t, "rita.zeng@example.com", user.Email)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("Get non-existing user by id", func(t *testing.T) {

@@ -5,6 +5,8 @@ go 1.22.1
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/stretchr/testify v1.9.0
+	gorm.io/driver/sqlite v1.5.6
+	gorm.io/gorm v1.25.10
 )
 
 require (
@@ -40,6 +42,4 @@ require (
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/sqlite v1.5.6 // indirect
-	gorm.io/gorm v1.25.10 // indirect
 )

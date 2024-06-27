@@ -34,37 +34,37 @@ func (m *MockUserService) GetUserById(id int) (*domain.User, error) {
 }
 
 func TestCreateUser(t *testing.T) {
-	// 初始化 mock service 和 handler
+	// Initialize mock service and handler
 	mockService := new(MockUserService)
 	handler := NewHandler(mockService)
 
-	// 初始化路由
+	// Initialize router
 	router := gin.Default()
 	router.POST("/user", handler.CreateUser)
 
 	t.Run("Create user", func(t *testing.T) {
-		// 測試用戶
-		user := domain.User{Name: "John Doe", Email: "john@example.com"}
+		// Test user
+		user := domain.User{Name: "Rita Zeng", Email: "rita.zeng@example.com"}
 		userJSON, _ := json.Marshal(user)
 
-		// 預期 mock service 的行為
+		// Expected behavior of mock service
 		mockService.On("CreateUser", user).Return(nil)
 
-		// 創建 HTTP 請求
+		// Create HTTP request
 		req, err := http.NewRequest(http.MethodPost, "/user", bytes.NewBuffer(userJSON))
 		require.NoError(t, err)
 		req.Header.Set("Content-Type", "application/json")
 
-		// 創建 ResponseRecorder 來記錄回應
+		// Create ResponseRecorder to record the response
 		resp := httptest.NewRecorder()
 
-		// 發送 HTTP 請求
+		// Send HTTP request
 		router.ServeHTTP(resp, req)
 
-		// 斷言 HTTP 狀態碼為 200 OK
+		// Assert HTTP status code is 200 OK
 		assert.Equal(t, http.StatusOK, resp.Code)
 
-		// 斷言 mock service 的期望調用
+		// Assert expected calls to mock service
 		mockService.AssertExpectations(t)
 	})
 }
@@ -77,7 +77,7 @@ func TestGetUserById(t *testing.T) {
 	router.GET("/user/:id", handler.GetUserById)
 
 	t.Run("Get user By Id", func(t *testing.T) {
-		user := domain.User{ID: 1, Name: "John Doe", Email: "john@example.com"}
+		user := domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"}
 
 		mockService.On("GetUserById", 1).Return(&user, nil)
 
@@ -90,13 +90,13 @@ func TestGetUserById(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.Code)
 
-		// 拿到200之後確認response json資料正不正確
+		// After getting 200, verify if the response JSON data is correct
 		var response domain.User
 		err = json.Unmarshal(resp.Body.Bytes(), &response)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, response.ID)
-		assert.Equal(t, "John Doe", response.Name)
-		assert.Equal(t, "john@example.com", response.Email)
+		assert.Equal(t, "Rita Zeng", response.Name)
+		assert.Equal(t, "rita.zeng@example.com", response.Email)
 
 		mockService.AssertExpectations(t)
 	})

@@ -20,7 +20,7 @@ func initDatabase(t *testing.T) *gorm.DB {
 func TestCreateUser(t *testing.T) {
 	db := initDatabase(t)
 
-	user := domain.User{ID: 1, Name: "John Doe", Email: "john@example.com"}
+	user := domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"}
 
 	repo := NewUserRepository(db)
 
@@ -43,7 +43,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUserById(t *testing.T) {
 	db := initDatabase(t)
-	db.Create(&domain.User{ID: 1, Name: "John Doe", Email: "john@example.com"})
+	db.Create(&domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"})
 
 	repo := NewUserRepository(db)
 
@@ -52,8 +52,8 @@ func TestGetUserById(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, 1, user.ID)
-		assert.Equal(t, "John Doe", user.Name)
-		assert.Equal(t, "john@example.com", user.Email)
+		assert.Equal(t, "Rita Zeng", user.Name)
+		assert.Equal(t, "rita.zeng@example.com", user.Email)
 	})
 
 	t.Run("Get non-existing user by id", func(t *testing.T) {
