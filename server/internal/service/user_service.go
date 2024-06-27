@@ -6,7 +6,8 @@ import (
 )
 
 type UserService interface {
-	GetUser(id int) (*domain.User, error)
+	CreateUser(user domain.User) error
+	GetUserById(id int) (*domain.User, error)
 }
 
 type userService struct {
@@ -17,6 +18,10 @@ func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{repo: repo}
 }
 
-func (s *userService) GetUser(id int) (*domain.User, error) {
-	return s.repo.GetUser(id)
+func (s *userService) CreateUser(user domain.User) error {
+	return s.repo.CreateUser(user)
+}
+
+func (s *userService) GetUserById(id int) (*domain.User, error) {
+	return s.repo.GetUserById(id)
 }
