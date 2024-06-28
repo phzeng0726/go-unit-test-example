@@ -4,60 +4,72 @@ import (
 	"testing"
 
 	"github.com/phzeng0726/go-unit-test-example/internal/domain"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func initDatabase(t *testing.T) *gorm.DB {
+type UserRepositoryTestSuite struct {
+	suite.Suite
+
+	db   *gorm.DB
+	repo UserRepository
+}
+
+func (suite *UserRepositoryTestSuite) SetupTest() {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	assert.NoError(t, err)
+	suite.NoError(err)
 	db.AutoMigrate(&domain.User{})
 
-	return db
+	suite.db = db
+	suite.repo = NewUserRepository(suite.db)
 }
 
-func TestCreateUser(t *testing.T) {
-	db := initDatabase(t)
-
+func (suite *UserRepositoryTestSuite) TestCreateUser() {
 	user := domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"}
 
-	repo := NewUserRepository(db)
-
-	t.Run("Create user", func(t *testing.T) {
-		err := repo.CreateUser(user)
-		assert.NoError(t, err)
-	})
-
-	t.Run("Create duplicate user", func(t *testing.T) {
-		err := repo.CreateUser(user)
-		assert.Error(t, err)
-	})
-
-	t.Run("Create user with empty data", func(t *testing.T) {
-		emptyUser := domain.User{}
-		err := repo.CreateUser(emptyUser)
-		assert.Error(t, err)
-	})
+	err := suite.repo.CreateUser(user)
+	suite.NoError(err)
 }
 
-func TestGetUserById(t *testing.T) {
-	db := initDatabase(t)
-	db.Create(&domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"})
+func (suite *UserRepositoryTestSuite) TestCreateUser_WiteDuplicateError() {
+	user := domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"}
 
-	repo := NewUserRepository(db)
+	// First user creation should succeed
+	err := suite.repo.CreateUser(user)
+	suite.NoError(err)
 
-	t.Run("Get exist user by id", func(t *testing.T) {
-		user, err := repo.GetUserById(1)
-		assert.NoError(t, err)
-		assert.NotNil(t, user)
-		assert.Equal(t, 1, user.ID)
-		assert.Equal(t, "Rita Zeng", user.Name)
-		assert.Equal(t, "rita.zeng@example.com", user.Email)
-	})
+	// Second user creation with the same ID should return an error
+	err = suite.repo.CreateUser(user)
+	suite.Error(err)
 
-	t.Run("Get non-existing user by id", func(t *testing.T) {
-		_, err := repo.GetUserById(2)
-		assert.Error(t, err)
-	})
+}
+
+func (suite *UserRepositoryTestSuite) TestCreateUser_WiteEmptyDataError() {
+	emptyUser := domain.User{}
+
+	err := suite.repo.CreateUser(emptyUser)
+	suite.Error(err)
+}
+
+func (suite *UserRepositoryTestSuite) TestGetUserById() {
+	suite.db.Create(&domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"})
+
+	user, err := suite.repo.GetUserById(1)
+	suite.NoError(err)
+	suite.NotNil(user)
+	suite.Equal(1, user.ID)
+	suite.Equal("Rita Zeng", user.Name)
+	suite.Equal("rita.zeng@example.com", user.Email)
+}
+
+func (suite *UserRepositoryTestSuite) TestGetUserById_WithInvalidError() {
+	suite.db.Create(&domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"})
+
+	_, err := suite.repo.GetUserById(2)
+	suite.Error(err)
+}
+
+func TestUserRepositoryTestSuite(t *testing.T) {
+	suite.Run(t, new(UserRepositoryTestSuite))
 }

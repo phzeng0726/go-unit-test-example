@@ -10,10 +10,17 @@ import (
 	"github.com/phzeng0726/go-unit-test-example/internal/domain"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
+
+type UserHandlerTestSuite struct {
+	suite.Suite
+
+	mockService *MockUserService
+	handler     *Handler
+	router      *gin.Engine
+}
 
 type MockUserService struct {
 	mock.Mock
@@ -33,71 +40,68 @@ func (m *MockUserService) GetUserById(id int) (*domain.User, error) {
 	return nil, args.Error(1)
 }
 
-func TestCreateUser(t *testing.T) {
-	// Initialize mock service and handler
-	mockService := new(MockUserService)
-	handler := NewHandler(mockService)
-
-	// Initialize router
-	router := gin.Default()
-	router.POST("/user", handler.CreateUser)
-
-	t.Run("Create user", func(t *testing.T) {
-		// Test user
-		user := domain.User{Name: "Rita Zeng", Email: "rita.zeng@example.com"}
-		userJSON, _ := json.Marshal(user)
-
-		// Expected behavior of mock service
-		mockService.On("CreateUser", user).Return(nil)
-
-		// Create HTTP request
-		req, err := http.NewRequest(http.MethodPost, "/user", bytes.NewBuffer(userJSON))
-		require.NoError(t, err)
-		req.Header.Set("Content-Type", "application/json")
-
-		// Create ResponseRecorder to record the response
-		resp := httptest.NewRecorder()
-
-		// Send HTTP request
-		router.ServeHTTP(resp, req)
-
-		// Assert HTTP status code is 200 OK
-		assert.Equal(t, http.StatusOK, resp.Code)
-
-		// Assert expected calls to mock service
-		mockService.AssertExpectations(t)
-	})
+func (suite *UserHandlerTestSuite) SetupTest() {
+	suite.mockService = new(MockUserService)
+	suite.handler = NewHandler(suite.mockService)
+	suite.router = gin.Default()
 }
 
-func TestGetUserById(t *testing.T) {
-	mockService := new(MockUserService)
-	handler := NewHandler(mockService)
+func (suite *UserHandlerTestSuite) TestCreateUser() {
+	suite.router.POST("/user", suite.handler.CreateUser)
 
-	router := gin.Default()
-	router.GET("/user/:id", handler.GetUserById)
+	// Test user
+	user := domain.User{Name: "Rita Zeng", Email: "rita.zeng@example.com"}
+	userJSON, _ := json.Marshal(user)
 
-	t.Run("Get user By Id", func(t *testing.T) {
-		user := domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"}
+	// Expected behavior of mock service
+	suite.mockService.On("CreateUser", user).Return(nil)
 
-		mockService.On("GetUserById", 1).Return(&user, nil)
+	// Create HTTP request
+	req, err := http.NewRequest(http.MethodPost, "/user", bytes.NewBuffer(userJSON))
+	suite.NoError(err)
+	req.Header.Set("Content-Type", "application/json")
 
-		req, err := http.NewRequest(http.MethodGet, "/user/1", nil)
-		require.NoError(t, err)
+	// Create ResponseRecorder to record the response
+	resp := httptest.NewRecorder()
 
-		resp := httptest.NewRecorder()
+	// Send HTTP request
+	suite.router.ServeHTTP(resp, req)
 
-		router.ServeHTTP(resp, req)
+	// Assert HTTP status code is 200 OK
+	suite.Equal(http.StatusOK, resp.Code)
 
-		assert.Equal(t, http.StatusOK, resp.Code)
+	// Assert expected calls to mock service
+	suite.mockService.AssertExpectations(suite.T())
+}
 
-		// After getting 200, verify if the response JSON data is correct
-		var response domain.User
-		err = json.Unmarshal(resp.Body.Bytes(), &response)
-		assert.NoError(t, err)
-		assert.Equal(t, 1, response.ID)
-		assert.Equal(t, "Rita Zeng", response.Name)
-		assert.Equal(t, "rita.zeng@example.com", response.Email)
+func (suite *UserHandlerTestSuite) TestGetUserById() {
 
-		mockService.AssertExpectations(t)
-	})
+	suite.router.GET("/user/:id", suite.handler.GetUserById)
+
+	user := domain.User{ID: 1, Name: "Rita Zeng", Email: "rita.zeng@example.com"}
+
+	suite.mockService.On("GetUserById", 1).Return(&user, nil)
+
+	req, err := http.NewRequest(http.MethodGet, "/user/1", nil)
+	suite.NoError(err)
+
+	resp := httptest.NewRecorder()
+
+	suite.router.ServeHTTP(resp, req)
+
+	suite.Equal(http.StatusOK, resp.Code)
+
+	// After getting 200, verify if the response JSON data is correct
+	var response domain.User
+	err = json.Unmarshal(resp.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal(1, response.ID)
+	suite.Equal("Rita Zeng", response.Name)
+	suite.Equal("rita.zeng@example.com", response.Email)
+
+	suite.mockService.AssertExpectations(suite.T())
+}
+
+func TestUserHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(UserHandlerTestSuite))
 }
