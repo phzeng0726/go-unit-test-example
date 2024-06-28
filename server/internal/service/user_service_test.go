@@ -38,6 +38,11 @@ func TestCreateUser(t *testing.T) {
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
 	})
+}
+
+func TestCreateUser_Error(t *testing.T) {
+	mockRepo := new(MockUserRepo)
+	s := NewUserService(mockRepo)
 
 	t.Run("Create user with empty data", func(t *testing.T) {
 		emptyUser := domain.User{}
@@ -47,7 +52,6 @@ func TestCreateUser(t *testing.T) {
 		assert.Equal(t, "cannot create empty user", err.Error())
 		mockRepo.AssertExpectations(t)
 	})
-
 }
 
 func TestGetUserById(t *testing.T) {
@@ -66,6 +70,11 @@ func TestGetUserById(t *testing.T) {
 		assert.Equal(t, "rita.zeng@example.com", user.Email)
 		mockRepo.AssertExpectations(t)
 	})
+
+}
+func TestGetUserById_Error(t *testing.T) {
+	mockRepo := new(MockUserRepo)
+	s := NewUserService(mockRepo)
 
 	t.Run("Get non-existing user by id", func(t *testing.T) {
 		nonExistingID := 2
